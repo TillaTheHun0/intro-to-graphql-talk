@@ -1,0 +1,19 @@
+{
+  "name": "intro-to-graphql-talk",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TillaTheHun0/intro-to-graphql-talk.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TillaTheHun0/intro-to-graphql-talk/issues"
+  },
+  "homepage": "https://github.com/TillaTheHun0/intro-to-graphql-talk#readme"
+}

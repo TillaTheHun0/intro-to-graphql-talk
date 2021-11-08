@@ -8,15 +8,23 @@ export const typeDefs = gql`
     """
     hello: String!
 
-    pokemons: [Pokemon!]!
+    """
+    Fetch a list of Pokemon, optionally filtering on whether
+    the pokemon is a favorite or not
+    """
+    pokemons (criteria: PokemonCriteriaInput): [Pokemon!]!
+  }
+
+  input PokemonCriteriaInput {
+    favorite: Boolean
   }
 `
 
 export const resolvers = {
   Query: {
     hello: () => 'world',
-    pokemons: (_, _args, { apis: { pokeApi }}, _info) => {
-      return pokeApi.queryPokemonMeta()
+    pokemons: (_, { criteria }, { apis: { pokeApi } }, _info) => {
+      return pokeApi.queryPokemonMeta(criteria)
     }
   }
 }

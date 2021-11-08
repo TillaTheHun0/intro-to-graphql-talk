@@ -6,6 +6,7 @@ export const typeDefs = gql`
     id: ID!
     name: String!
     starter: Boolean!
+    favorite: Boolean!
   }
 `
 

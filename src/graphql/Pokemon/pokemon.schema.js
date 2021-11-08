@@ -7,6 +7,7 @@ export const typeDefs = gql`
     name: String!
     starter: Boolean!
     favorite: Boolean!
+    moves: [Move!]!
   }
 `
 

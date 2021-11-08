@@ -5,6 +5,7 @@ export const typeDefs = gql`
   type Move {
     name: String!
     type: Type!
+    pokemon: [Pokemon!]!
   }
 
   enum Type {
@@ -31,4 +32,10 @@ export const typeDefs = gql`
   }
 `
 
-export const resolvers = {}
+export const resolvers = {
+  Move: {
+    pokemon: (move, _args, { apis: { pokeApi } }) => {
+      return pokeApi.findPokemonByMove(move.name)
+    }
+  }
+}

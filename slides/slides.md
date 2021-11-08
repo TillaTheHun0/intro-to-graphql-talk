@@ -300,13 +300,12 @@ remember, this defines the servers capabilities
 
 - Type
 - Field
+- Enum
 - Scalar
-  - Enum
   - Custom
 - !
 - []
 - Input
-- Union & Interface
 
 ---
 
@@ -355,11 +354,311 @@ Hyper Cloud Application `https://dashboard.hyper.io`
 Create `.env` file with `HYPER` set to your connection string
 `npm i`
 `npm run setup`
-`npm run dev`
+`npm run list`
 
 ---
 
+### **Let's mount graphql on express**
+
+---
+
+<!-- Add typeDefs, but no resolvers, segue to resolvers -->
 ### **Use Cases**
 
 - Fetch a list of pokemon
 - Fetch whether they are a starter pokemon
+
+---
+
+### **GraphQL Resolver**
+
+A function that tells GraphQL how to fulfill a field
+
+```js
+const myResolver = (parent, args, context, info) => {
+  ...
+}
+```
+
+---
+
+```js
+const typeDefs = gql`
+  type MyType {
+    id: ID!
+    someBoolean: Boolean!
+    someArrOfInts: [Int!]!
+  }
+`
+
+const resolvers = {
+  MyType: {
+    id: (parent, args, context, info) => 'some-id',
+    someBoolean: (parent, args, context, info) => true,
+    someArrOfInts: async (parent, args, context, info) =>
+      Promise.resolve([1, 2, 3])
+  }
+}
+```
+
+---
+
+### **Resolver Signature**
+
+```js
+const myResolver = (parent, args, context, info) => {
+  ...
+}
+```
+
+- `parent`: what was returned from the **previous** type's resolvers
+- `args`: arguments provided directly to this field in the query
+- `context`: object that is passed to _every_ GraphQL resolver
+- `info`: field that contains metadata about the query
+
+---
+
+**Tyler's Opinion**: you won't need `info` most of the time. It's for advanced use cases (perhaps we will get to some)
+
+---
+
+<!--
+Resolvers are executed by the GraphQL runtime, following a small set of rules
+
+- explain the the rules
+
+Basically, when GraphQL receives a query, it looks for resolvers for each field. It resolves
+one level of the query at a time, then resolves the next level. When a field is a scalar type, graphql completes resolving that field. If the field is an object (another type), then it will look for resolvers to resolve each field on that type requested in the query. 
+-->
+### **Resolver Rules**
+
+- Resolvers are executed "breadth-firstly"
+  - Siblings are executed in parallel
+  - A resolver on a child type is excuted only after it's parent type fully resolves
+- If an **object** is returned, then execution continues
+- If a **scalar** is returned, execution completes
+
+---
+
+### **Query Resolution**
+
+```
+query {
+  getAuthor(id: 5){
+    name
+    posts {
+      title
+      author {
+        name
+      }
+    }
+  }
+}
+```
+
+![bg right contain](./img/tree.png)
+
+---
+
+```
+query {
+  getAuthor(id: 5){
+    name
+    posts {
+      title
+      author {
+        name
+      }
+    }
+  }
+}
+```
+1. run Query.getAuthor
+2. run Author.name and Author.posts (for Author returned in 1)
+3. run Post.title and Post.author (for each Post returned in 2)
+4. run Author.name (for each Author returned in 3)
+
+---
+<!-- The important thing to intuit from this is that GraphQL queries always end at scalar values -->
+GraphQL resolves a query until it has received a scalar value for each field in the query
+
+---
+
+### **Resolver Context**
+
+The 3rd argument passed to each resolver
+**Mutable** (do not recommend mutating)
+
+Can be built on each query received
+
+---
+
+<!-- 
+`context` is great for dependency injection, providing resolvers with things like
+Api methods, configuration, etc.
+
+02
+ -->
+### **Resolver Context**
+
+**Tyler's Opinion**: Use `context` for dependency injection!
+
+---
+
+### **Trivial Resolvers**
+
+```js
+const resolvers = {
+  id: (parent) => parent.id,
+  name: (parent) => parent.name
+}
+```
+
+Most GraphQL runtime implementations provide you these out of the box, including `graphql.js`
+
+---
+
+<!-- 03 -->
+### **Use Case**
+
+- fetch whether a pokemon is a `favorite`
+- filter pokemon based on `favorite`
+
+---
+
+### **What do we have so far**
+
+- Input Validation
+- Filtering
+- Output Validation
+- _Documentation_
+- Explicit Contract
+
+---
+
+<!-- 04 -->
+### **Use Case**
+
+- Fetch the moves each pokemon can learn
+  - move name
+  - elemental type
+
+---
+
+### **Problem**
+
+Overfetching on the **server**
+
+---
+
+<!-- 05 -->
+### **Solution**
+
+Only load the data when it is asked for!
+
+How? With a separate resolver!
+
+---
+
+### **What did we gain?**
+
+- Merging data from two data sources
+- Only loading from data source when client asks for it
+- Automatic field mapping (DTO)
+  - Our schema describes the shape and graphql runtime fulfills it
+- Separation of concerns
+
+---
+
+<!-- 06 -->
+## **Use Case**
+
+- Fetch the Pokemon that can learn each move
+
+---
+
+Pokemon can be resolved from two different places
+- `Query.pokemon`
+- `Moves.pokemon`
+
+Furthermore, Pokemon can come from different data sources:
+- `Query.pokemon` from hyper data (`metaClient`)
+- `Moves.pokemon`from PokeApi (`pokeClient`)
+
+`favorite` only comes from hyper. Oh no!
+`name` is capitalized in hyper data, but not in PokeApi 😞
+
+---
+
+<!-- 07 -->
+### **Solution**
+
+Resolver for the `favorite` field!
+Resolver for the `name` field!
+
+---
+
+## **Problem**
+
+Serving data via a hierarchical can cause issues:
+
+- Loading the same Pokemon multiple times
+- Loading the same Move multiple times
+
+### **N+1 Problem**
+
+--- 
+
+### **Solutions?**
+
+- Load data in the parent that the child will need?
+- Don't let data be cyclical on the graph?
+
+💩 (Both of these take away benefits of graphql!)
+
+---
+
+### **dataloader**
+
+Automatic batching, deduping, and caching from datasources
+
+---
+
+**Tyler's Opinion**:
+- Parent should always provide the primary identifier of the type being resolved.
+- each field level resolver on that type loads its own data.
+- Let `dataloader` dedupe, batch, and cache requests to data sources
+- TL;DR: **use dataloader**
+
+
+---
+
+### **Break**
+
+---
+
+### **Mutations**
+
+---
+
+- All mutations should be top level
+- Unike `Query` GraphQL executes mutation siblings sequentially
+- Allows sending atomic operations to the server that contains multiple mutations
+
+---
+
+<!-- 08 -->
+### **Use Case**
+
+- Add a new favorite Pokemon
+
+---
+
+<!-- 09 -->
+### **Bonus**
+
+Schema Stitching
+
+---
+
+### **FIN**

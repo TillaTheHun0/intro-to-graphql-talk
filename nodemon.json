@@ -1,0 +1,5 @@
+{
+    "watch": ["src"],
+    "exec": "node -r dotenv/config -r ./register.cjs ./src/index.js",
+    "ext": "js"
+  }

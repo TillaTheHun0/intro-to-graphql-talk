@@ -25,15 +25,6 @@ export const resolvers = {
     hello: () => 'world',
     pokemons: async (_, { criteria }, { apis: { pokeApi } }, _info) => {
       const pokemons = await pokeApi.queryPokemonMeta(criteria)
-
-      await Promise.all(
-        pokemons.map(async p => {
-          const moves = await pokeApi.findPokemonMoves(p.name)
-          console.log('fetched moves')
-          p.moves = moves
-        })
-      )
-
       return pokemons
     }
   }

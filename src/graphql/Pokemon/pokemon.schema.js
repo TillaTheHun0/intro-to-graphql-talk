@@ -11,4 +11,13 @@ export const typeDefs = gql`
   }
 `
 
-export const resolvers = {}
+export const resolvers = {
+  Pokemon: {
+    moves: async (pokemon, _args, { apis: { pokeApi } }) => {
+      console.log('fetching moves')
+      const moves = await pokeApi.findPokemonMoves(pokemon.name)
+
+      return moves
+    }
+  }
+}

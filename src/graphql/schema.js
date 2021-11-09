@@ -1,6 +1,8 @@
 
 import { mergeDeepRight } from 'ramda'
-import { makeExecutableSchema } from '@graphql-tools/schema'
+import { stitchSchemas } from '@graphql-tools/stitch'
+
+import { pokeSchema } from './pokeSchema.js'
 
 import * as Scalars from './scalars.js'
 import * as QuerySchema from './Query/query.schema.js'
@@ -23,7 +25,12 @@ const { typeDefs, resolvers } = [
   { typeDefs: [], resolvers: {} }
 )
 
-export const buildSchema = async () => makeExecutableSchema({
-  typeDefs,
-  resolvers
-})
+export const buildSchema = async () => {
+  return stitchSchemas({
+    subschemas: [
+      await pokeSchema
+    ],
+    typeDefs,
+    resolvers
+  })
+}

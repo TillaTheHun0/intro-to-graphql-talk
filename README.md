@@ -2,6 +2,8 @@
 
 Codebase for the [CDCu Introduction to GraphQL APIs workshop](https://www.charlestondigitalcorridor.com/talent/cdcu/1630196638548-introduction-graphql-apis/)
 
+The `master` branch contains the finished project for the workshop. Each part outline in #parts is on a separate branch.
+
 ## Prerequisites
 
 - Node@16
@@ -25,6 +27,8 @@ HYPER=your-connection-string
 You should see a list of JSON documents of `docType` `pokemon` listed to your console
 
 ## Parts
+
+You can use `git checkout` to checkout the branches that correspond to these steps in the workshop. `master` contains the finished project.
 
 - 00: Review the boilerplate
 - 01: mount apollo on express
